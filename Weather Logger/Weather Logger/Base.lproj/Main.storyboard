@@ -58,7 +58,7 @@
                                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="30 C" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="H2D-jk-N9L">
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="30 C" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="H2D-jk-N9L">
                                                 <rect key="frame" x="188.5" y="20" width="34" height="19.5"/>
                                                 <fontDescription key="fontDescription" name="HelveticaNeue-Medium" family="Helvetica Neue" pointSize="16"/>
                                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -268,7 +268,7 @@
                                             <constraint firstItem="ehR-mt-KxZ" firstAttribute="leading" secondItem="2LX-dY-Qdy" secondAttribute="trailing" constant="14" id="3E4-9O-Bj8"/>
                                             <constraint firstAttribute="trailing" secondItem="H2D-jk-N9L" secondAttribute="trailing" constant="151.5" id="5NN-Nl-dIq"/>
                                             <constraint firstItem="TA0-Wu-L90" firstAttribute="centerX" secondItem="6UV-dW-few" secondAttribute="centerX" id="6ok-6L-I2q"/>
-                                            <constraint firstItem="H2D-jk-N9L" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="ehR-mt-KxZ" secondAttribute="trailing" symbolic="YES" id="800-gA-F37"/>
+                                            <constraint firstItem="H2D-jk-N9L" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="ehR-mt-KxZ" secondAttribute="trailing" constant="8" symbolic="YES" id="800-gA-F37"/>
                                             <constraint firstItem="2LX-dY-Qdy" firstAttribute="top" secondItem="6UV-dW-few" secondAttribute="top" constant="20" id="Fiw-Fj-cTt"/>
                                             <constraint firstItem="TA0-Wu-L90" firstAttribute="top" secondItem="IrL-YX-Ve7" secondAttribute="bottom" constant="9.5" id="LQn-jE-UGd"/>
                                             <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="ehR-mt-KxZ" secondAttribute="trailing" constant="20" symbolic="YES" id="QLp-iU-N7R"/>

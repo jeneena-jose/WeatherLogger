@@ -14,11 +14,11 @@ import MapKit
 class WeatherListingView: UIViewController {
     
     let reuseIdentifier = "ColListCell"
-    let locationManager = CLLocationManager()
+    var locationManager : CLLocationManager?
     var lastLocationSaved : CLLocation?
     var weatherInfoCurrent :  WeatherDBModel?
     var weatherLogs = [WeatherDBModel]()
-
+    
     @IBOutlet weak var colViewListing: UICollectionView!
     @IBOutlet weak var lblSunrise: UILabel!
     @IBOutlet weak var lblSunset: UILabel!
@@ -26,7 +26,7 @@ class WeatherListingView: UIViewController {
     @IBOutlet weak var lblPressure: UILabel!
     @IBOutlet weak var lblWind: UILabel!
     @IBOutlet weak var lblFeelsLike: UILabel!
-
+    
     @IBOutlet weak var lblCity: UILabel!
     @IBOutlet weak var lblWeatherInfo: UILabel!
     @IBOutlet weak var lblTemperature: UILabel!
@@ -34,7 +34,7 @@ class WeatherListingView: UIViewController {
     @IBOutlet weak var viewWeatherInfo: UIView!
     @IBOutlet weak var viewNoLocation: UIView!
     @IBOutlet weak var lblErrorMsg: UILabel!
-
+    
     @IBOutlet weak var btnSave: UIButton!
     
     override func viewDidLoad() {
@@ -60,7 +60,7 @@ class WeatherListingView: UIViewController {
     }
     
     @IBAction func btnSaveClick(_ sender: Any) {
-
+        
         if DBManager.shared.createDatabase() {
             DBManager.shared.insertWeatherData(weather: self.weatherInfoCurrent!)
             
@@ -86,32 +86,32 @@ extension WeatherListingView : UICollectionViewDataSource {
         
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath as IndexPath) as! WeatherCell
         
-          let weatherInfo = weatherLogs[indexPath.row]
+        let weatherInfo = weatherLogs[indexPath.row]
         
-         let sunset = weatherInfo.sunset
+        let sunset = weatherInfo.sunset
         cell.lblSunset.text = Date.init(timeIntervalSince1970: Double(sunset)).UTCToLocal()
         
-             let sunrise = weatherInfo.sunrise
+        let sunrise = weatherInfo.sunrise
         cell.lblSunrise.text = Date.init(timeIntervalSince1970: Double(sunrise)).UTCToLocal()
-
+        
         cell.lblDate.text = Date.init(timeIntervalSince1970: Double(weatherInfo.logTimeStamp)).UTCToLocalCaps()
-
+        
         let wind = weatherInfo.windSpeed
         cell.lblWind.text = "\(wind.rounded(toPlaces : 1)) m/s"
-         let humidity = weatherInfo.humidity
+        let humidity = weatherInfo.humidity
         cell.lblHumidity.text = "\(humidity) %"
         let presurre = weatherInfo.pressure
         cell.lblPressure.text = "\(presurre) hPa"
-         let feelslike = weatherInfo.feelsLike
-            let celsius = feelslike.KelvinToCelsius
+        let feelslike = weatherInfo.feelsLike
+        let celsius = feelslike.KelvinToCelsius
         cell.lblFeelsLike.text = "\(celsius().rounded(toPlaces : 2)) °C"
         let city = weatherInfo.city
         cell.lblCity.text = city
-
+        
         let temp = weatherInfo.temp
-            let celsiusTemp = temp.KelvinToCelsius
+        let celsiusTemp = temp.KelvinToCelsius
         cell.lblTemperature.text = "\(celsiusTemp().rounded(toPlaces : 2)) °C"
-                
+        
         return cell
         
     }
@@ -125,13 +125,17 @@ extension WeatherListingView: UICollectionViewDelegateFlowLayout {
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
         
-        return CGSize(width: self.view.bounds.width,height: 100.0)
+        if UIDevice.current.userInterfaceIdiom == .pad{
+            return CGSize(width: self.view.bounds.width/2 - 10 ,height: 100.0)
+        }else{
+            return CGSize(width: self.view.bounds.width,height: 100.0)
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 0
+        return UIDevice.current.userInterfaceIdiom == .pad ? 10 : 0
     }
     
     func collectionView(_ collectionView: UICollectionView, layout
@@ -151,88 +155,62 @@ extension WeatherListingView : UICollectionViewDelegate {
 extension WeatherListingView : CLLocationManagerDelegate  {
     
     func checkLocationServicesPermission(){
-        let status = CLLocationManager.authorizationStatus()
+        
+        locationManager = CLLocationManager()
+        locationManager?.delegate = self
+        self.locationManager?.requestWhenInUseAuthorization()
+        locationManager?.startUpdatingLocation()
+        
+    }
+    
+    func locationManager(_ manager: CLLocationManager,
+                         didChangeAuthorization status: CLAuthorizationStatus) {
         
         switch status {
-        case .notDetermined:
-            locationManager.requestWhenInUseAuthorization()
-            return
             
-        case .denied, .restricted:
+        case .notDetermined         :
+            print("notDetermined")        // location permission not asked for yet
+            locationManager?.requestAlwaysAuthorization()
+        case .authorizedWhenInUse   :
+            print("authorizedWhenInUse");
+            locationManager?.startUpdatingLocation()
+        case .authorizedAlways      :
+            print("authorizedAlways");
+            locationManager?.startUpdatingLocation()
+        case .restricted, .denied   :
+            self.viewWeatherInfo.isHidden = true
+            self.viewNoLocation.isHidden = false
+            
             let alert = UIAlertController(title: "Location Services disabled", message: "Please enable Location Services in Settings", preferredStyle: .alert)
             let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
             alert.addAction(okAction)
             
             present(alert, animated: true, completion: nil)
             return
-            //        case .authorizedAlways, .authorizedWhenInUse , .authorized:
-            //            break
             
-        case .authorizedAlways, .authorizedWhenInUse:
-            self.viewWeatherInfo.isHidden = false
-            self.viewNoLocation.isHidden = true
-            break
-        @unknown default:
-            break
-        }
-        
-        locationManager.delegate = self
-        self.locationManager.requestWhenInUseAuthorization()
-        locationManager.startUpdatingLocation()
-        
-    }
-    
-    func locationManager(_ manager: CLLocationManager,
-                         didChangeAuthorization status: CLAuthorizationStatus) {
-
-        switch status {
-    
-        case .notDetermined         : print("notDetermined")        // location permission not asked for yet
-        case .authorizedWhenInUse   :
-            print("authorizedWhenInUse");
-            self.viewWeatherInfo.isHidden = false
-            self.viewNoLocation.isHidden = true
-
-            fetchWeatherDetails()// location authorized
-        case .authorizedAlways      :
-            print("authorizedAlways");
-            self.viewWeatherInfo.isHidden = false
-            self.viewNoLocation.isHidden = true
-            fetchWeatherDetails()   // location authorized
-        case .restricted, .denied   :
-            self.viewWeatherInfo.isHidden = true
-            self.viewNoLocation.isHidden = false
-
-        let alert = UIAlertController(title: "Location Services disabled", message: "Please enable Location Services in Settings", preferredStyle: .alert)
-        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
-        alert.addAction(okAction)
-        
-        present(alert, animated: true, completion: nil)
-        return
-
         @unknown default:
             break
         }
     }
-
+    
     // Below method will provide you current location.
-     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        
         if locations.count > 0{
-                lastLocationSaved = locations.last
-                locationManager.stopUpdatingLocation()
-                fetchWeatherDetails()
-            }
+            lastLocationSaved = locations.last
+            locationManager?.stopUpdatingLocation()
+            fetchWeatherDetails()
         }
-
+    }
+    
     // Below Mehtod will print error if not able to update location.
-        func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-            print("Error")
-            self.viewWeatherInfo.isHidden = true
-            self.viewNoLocation.isHidden = false
-            lblErrorMsg.text = "Error fetching the location details."
-        }
-
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Error")
+        self.viewWeatherInfo.isHidden = true
+        self.viewNoLocation.isHidden = false
+        lblErrorMsg.text = "Error fetching the location details."
+    }
+    
     
     
 }
@@ -261,29 +239,20 @@ extension WeatherListingView {
             completion(placemark)
         }
     }
-    
-//    public var exposedLocation: CLLocation? {
-//        return self.locationManager.location
-//    }
-//
-//
-//
     func fetchWeatherDetails(){
         
-
+        
         if let locationCoordinate = lastLocationSaved {
             
-            self.viewWeatherInfo.isHidden = false
-            self.viewNoLocation.isHidden = true
-
+            
             self.getPlace(for: locationCoordinate) { (placeMark) in
                 
                 var city = (placeMark?.administrativeArea ?? "") + "," + (placeMark?.subAdministrativeArea ?? "")
                 city = city + "," + (placeMark?.country ?? "")
-
+                
                 var weatherURL = "http://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=62c8c9753b4124b2ecf64bae351514b7"
                 weatherURL = weatherURL.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-
+                
                 guard let url = URL(string: weatherURL) else {
                     return
                 }
@@ -292,37 +261,41 @@ extension WeatherListingView {
                 AF.request(url, method: .get)
                     .validate()
                     .response { response in
-
+                        
                         do {
-
-                        debugPrint(response)
-
-                        switch response.result {
-
-                        case .success(let json):
-                            print(json!)
                             
-                            if let JSON = String(data: json!, encoding: .utf8) {
-                                print("json: \(JSON)")
-                                let weatherInfo = try WeatherInfo(JSON)
-                                self.weatherInfoCurrent = weatherInfo.mapToDB()
+                            debugPrint(response)
+                            
+                            switch response.result {
+                                
+                            case .success(let json):
+                                print(json!)
+                                
+                                if let JSON = String(data: json!, encoding: .utf8) {
+                                    print("json: \(JSON)")
+                                    let weatherInfo = try WeatherInfo(JSON)
+                                    self.weatherInfoCurrent = weatherInfo.mapToDB()
+                                }
+                                
+                                
+                                DispatchQueue.main.async {
+                                    print("setWeatherDetails2")
+                                    self.setWeatherDetails()
+                                }
+                                
+                            case .failure(let error):
+                                self.viewWeatherInfo.isHidden = true
+                                self.viewNoLocation.isHidden = false
+                                self.lblErrorMsg.text = "Error fetching the weather details for \(city)."
+                                
+                                print("Response failed : " + error.localizedDescription)
                             }
-
-
-                            DispatchQueue.main.async {
-                             print("setWeatherDetails2")
-                                self.setWeatherDetails()
-                           }
-
-                        case .failure(let error):
-                            print("Response failed : " + error.localizedDescription)
+                        } catch let parseError as NSError {
+                            print("JSON Error \(parseError.localizedDescription)")
                         }
-                            } catch let parseError as NSError {
-                                print("JSON Error \(parseError.localizedDescription)")
-                            }
-
+                        
                 }
-
+                
             }
         }
     }
@@ -367,17 +340,21 @@ extension WeatherListingView {
                 let celsius = temp.KelvinToCelsius
                 lblTemperature.text = "\(celsius().rounded(toPlaces : 2)) °C"
             }
-
+            
+        }else{
+            self.viewWeatherInfo.isHidden = true
+            self.viewNoLocation.isHidden = false
+            self.lblErrorMsg.text = "Error fetching the weather details."
         }
     }
     
     func fetchAllWeatherLogs(){
-    
+        
         if DBManager.shared.createDatabase() {
             weatherLogs =  DBManager.shared.loadWeatherLogs()
             colViewListing.reloadData()
         }
-
+        
     }
     
 }

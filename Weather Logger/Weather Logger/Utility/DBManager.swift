@@ -93,7 +93,7 @@ class DBManager: NSObject {
     
     func insertWeatherData(weather : WeatherDBModel) {
         if openDatabase() {
-                    let query = "insert into weather (\(field_LogTimeStamp), \(field_City), \(field_Desc), \(field_Temp), \(field_Sunrise), \(field_Sunset), \(field_Pressure), \(field_Wind), \(field_Humidity), \(field_FeelsLike)) values (  \(weather.logTimeStamp) , \(weather.city) , \(weather.desc), \(weather.temp), \(weather.sunrise),\(weather.sunset),\(weather.pressure),\(weather.windSpeed),\(weather.humidity),\(weather.feelsLike));"
+                    let query = "insert into weather (\(field_LogTimeStamp), \(field_City), \(field_Desc), \(field_Temp), \(field_Sunrise), \(field_Sunset), \(field_Pressure), \(field_Wind), \(field_Humidity), \(field_FeelsLike)) values (  \(weather.logTimeStamp) , '\(weather.city)' , '\(weather.desc)', \(weather.temp), \(weather.sunrise),\(weather.sunset),\(weather.pressure),\(weather.windSpeed),\(weather.humidity),\(weather.feelsLike));"
 
                     if !database.executeStatements(query) {
                         print("Failed to insert initial data into the database.")
